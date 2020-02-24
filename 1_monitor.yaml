@@ -1,0 +1,38 @@
+# This sample sets up an Elasticsearch cluster and a Kibana instance preconfigured for that cluster.
+# The hints based autodiscover annotations for Filebeat are managed by ECK.
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: monitor
+  namespace: beats
+spec:
+  version: 7.5.2
+  nodeSets:
+  - name: mdi
+    count: 4
+    config:
+      node.store.allow_mmap: false
+    volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+---
+apiVersion: kibana.k8s.elastic.co/v1
+kind: Kibana
+metadata:
+  name: monitor
+  namespace: beats
+spec:
+  version: 7.5.2
+  count: 1
+  elasticsearchRef:
+    name: "monitor"
+  http:
+    service:
+      spec:
+        type: LoadBalancer
